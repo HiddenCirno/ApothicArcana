@@ -1,0 +1,43 @@
+{
+  "parent": "apotheosis:enchanting/enchanter",
+  "conditions": [
+    {
+      "type": "apotheosis:module",
+      "module": "enchantment"
+    }
+  ],
+  "display": {
+    "icon": {
+      "item": "apothinfuser:ultimate_arcane_enchanting_table"
+    },
+    "title": {
+      "translate": "advancements.apothinfuser.ultimate_arcane_enchanting_table"
+    },
+    "description": {
+      "translate": "advancements.apothinfuser.ultimate_arcane_enchanting_table.desc"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "ultimate_arcane_enchanting_table": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "apothinfuser:ultimate_arcane_enchanting_table"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "ultimate_arcane_enchanting_table"
+    ]
+  ]
+}

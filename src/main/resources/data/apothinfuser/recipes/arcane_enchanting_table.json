@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "M": {
+      "type": "forge:partial_nbt",
+      "item": "minecraft:enchanted_book",
+      "nbt": "{StoredEnchantments:[{id:\"minecraft:mending\",lvl:1s}]}"
+    },
+    "E": {
+      "item": "minecraft:emerald"
+    },
+    "C": {
+      "item": "minecraft:crying_obsidian"
+    },
+    "T": {
+      "item": "minecraft:enchanting_table"
+    }
+  },
+  "pattern": [
+    " M ",
+    "ECE",
+    "CTC"
+  ],
+  "result": {
+    "item": "apothinfuser:arcane_enchanting_table"
+  },
+  "show_notification": true
+}

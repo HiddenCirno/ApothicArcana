@@ -1,0 +1,34 @@
+{
+  "parent": "apothinfuser:enchanting/ultimate_arcane_enchanting_table",
+  "conditions": [
+    {
+      "type": "apotheosis:module",
+      "module": "enchantment"
+    }
+  ],
+  "display": {
+    "icon": {
+      "item": "apotheosis:infused_breath"
+    },
+    "title": {
+      "translate": "advancements.apothinfuser.eternal_end"
+    },
+    "description": {
+      "translate": "advancements.apothinfuser.eternal_end.desc"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "infuse": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "infuse"
+    ]
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/enchanting_table",
+  "textures": {
+    "particle": "apothinfuser:block/ultimate_arcane_enchanting_table_top",
+    "bottom": "apothinfuser:block/ultimate_arcane_enchanting_table_bottom",
+    "top": "apothinfuser:block/ultimate_arcane_enchanting_table_top",
+    "side": "apothinfuser:block/ultimate_arcane_enchanting_table_side"
+  }
+}

@@ -1,0 +1,19 @@
+# Mixin 注解处理器的「依赖目标」清单。
+#
+# 格式（Mixin 0.8.5 的 TargetMap.readImports 规定）：每行两列，用 **TAB** 分隔，
+#     目标类 <TAB> Mixin 类
+# 两列都用点号分隔的类名。空行与非两列的行会被静默忽略。
+#
+# 为什么需要这个文件：
+# refmap 生成器要把 @Inject/@Shadow/@Redirect 里的名字从开发名映射到 SRG 名，
+# 而它只在**原版**的映射表里查表。InfuserMenu 是别人的模组类，不在表里，
+# 于是处理器会报 "Unable to locate obfuscation mapping for @Inject target" 并**中断编译**。
+# 把这类目标在此登记，处理器就知道「它不需要映射」，转而只发警告。
+#
+# 反过来说：**这里只登记模组类**。原版类（Slot、Player、ExperienceOrb…）必须留给
+# 处理器去查表，登记了反而会让它们的 refmap 条目消失，正式环境就会失效。
+#
+# 新增针对模组类的注入时，务必同步补一行，否则构建会直接失败（这是好事，响亮失败）。
+
+fuzs.enchantinginfuser.world.inventory.InfuserMenu	com.apothinfuser.mixin.InfuserMenuMixin
+fuzs.enchantinginfuser.world.inventory.InfuserMenu	com.apothinfuser.mixin.InfuserMenuInvoker

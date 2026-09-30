@@ -1,0 +1,32 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": {
+      "item": "minecraft:nether_star"
+    },
+    "G": {
+      "type": "forge:partial_nbt",
+      "item": "apotheosis:gem",
+      "nbt": "{gem:\"apotheosis:overworld/royalty\",affix_data:{rarity:\"apotheosis:ancient\"}}"
+    },
+    "A": {
+      "item": "apothinfuser:arcane_enchanting_table"
+    },
+    "I": {
+      "item": "enchantinginfuser:advanced_enchanting_infuser"
+    },
+    "B": {
+      "item": "minecraft:netherite_block"
+    }
+  },
+  "pattern": [
+    " N ",
+    "GAG",
+    "BIB"
+  ],
+  "result": {
+    "item": "apothinfuser:ultimate_arcane_enchanting_table"
+  },
+  "show_notification": true
+}

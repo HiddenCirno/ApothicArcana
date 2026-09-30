@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8.5",
+  "package": "com.apothinfuser.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "apothinfuser.refmap.json",
+  "mixins": [
+    "InfuserMenuInvoker",
+    "InfuserMenuMixin",
+    "SlotMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

@@ -1,0 +1,66 @@
+# ===================================================================
+# Apothic Arcana —— 版本控制排除清单
+#
+# 分四类：构建产物、开发期临时件、第三方内容、编辑器/系统垃圾。
+# 「第三方内容」那一段是硬性的：那些文件要么是别人的源码、要么是不能再分发的素材，
+# 一旦推到公开仓库就很难收回。改动前请先看清楚每一条的理由。
+# ===================================================================
+
+# ---- 构建产物与运行目录 ----
+build/
+.gradle/
+run/
+out/
+classes/
+
+# 日志与崩溃报告（run/ 里也有，这里兜一层）
+*.log
+hs_err_pid*.log
+replay_pid*.log
+
+# ---- 开发期临时件 ----
+# 解析用户设计图用的像素分析脚本，一次性工具，不属于工程
+.gui-analyze.py
+.gui-overlay.py
+
+# 打包出来的发行 jar（由 `gradlew build` 重新生成）
+# build/libs 已被上面 build/ 覆盖，这里只是把意图写明
+
+# 解包出来的第三方依赖。
+# puzzles-lib 通过 Jar-in-Jar 内嵌 puzzlesaccessapi，ForgeGradle 在 dev 环境下
+# 不会自动展开，必须解到 libs/。用 `gradlew extractJiJ` 可随时重建，
+# 且它是别人的产物，不该进版本库。
+libs/
+
+# ---- 第三方内容（严禁提交）----
+# 别人的源码浅克隆，各带自己的 .git：
+#   _ref/apoth    = Apotheosis（MIT）
+#   _ref/infuser  = Enchanting Infuser（代码 MPL-2.0，**素材 All Rights Reserved**）
+_ref/
+
+# 提取出来的第三方贴图，仅供制作美术时对照：
+# 含 Minecraft 原版贴图（不可再分发）与附魔灌注台的 ARR 素材。
+art-reference/
+
+# 与本模组无关的另一个项目的工作副本
+MCAICodingMCP/
+
+# 本模组自己的美术工作目录（设计图、草稿、识别用标记图）。
+# 最终成品贴图已经放在 src/main/resources/assets/apothinfuser/textures/ 下，
+# 这里只是制作过程，故不纳入。若要一并公开，删掉下面这行即可。
+texture&GUI/
+
+# ---- 编辑器 / 系统垃圾 ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/enchanting_table",
+  "textures": {
+    "particle": "apothinfuser:block/arcane_enchanting_table_top",
+    "bottom": "minecraft:block/crying_obsidian",
+    "top": "apothinfuser:block/arcane_enchanting_table_top",
+    "side": "apothinfuser:block/arcane_enchanting_table_side"
+  }
+}

@@ -1,0 +1,286 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+}
+
+version = "${mod_version}+mc${minecraft_version}"
+group = mod_group_id
+
+base {
+    archivesName = "${mod_id}-forge-${minecraft_version}"
+}
+
+ext {
+    minecraft_version_range = "[${minecraft_version},1.21)"
+    forge_version_range = "[${min_forge_version},)"
+    loader_version_range = "[47,)"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+// 系统默认编码为 GBK，源码含中文注释，必须强制 UTF-8
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// Mixin 注解处理器默认不写 refmap，必须显式指定输出路径与混淆环境。
+// 输出到 classes/java/main 下，jar 任务会随 sourceSets.main.output 一并打包。
+// 保证 mixin.env.refMapRemappingFile 指向的映射文件在启动前已生成
+tasks.matching { it.name in ['runClient', 'runServer', 'runData'] }.configureEach {
+    dependsOn 'createSrgToMcp'
+    dependsOn 'patchRefmap'
+}
+
+// ---- refmap 生成 ----
+//
+// 处理器要三样东西：一个映射文件、那个文件的格式、以及写出目标的混淆环境。
+//   createMcpToSrg/output.tsrg  —— ForgeGradle 6 自己生成的 MCP→SRG 映射（正是所需方向）
+//   defaultObfuscationEnv=searge —— 目标环境名。Mixin 运行时按 "data.searge" 段查表，
+//                                  与 dev 那对 remapRefMap 属性回读时用的键一致。
+//
+// 刻意把产物写进 classes/java/main 而不是只塞进 jar：
+// 这样 dev 的类路径上也会出现它，Mixin 会先按 SRG 应用再用 output.srg 映回 dev 名——
+// 也就是说 **dev 启动本身就成了一次 refmap 的验证**。写错的话 dev 立刻炸，不用等到进真实游戏。
+tasks.named('compileJava', JavaCompile).configure {
+    dependsOn 'createMcpToSrg'
+    options.compilerArgs += [
+            "-AoutRefMapFile=${project.buildDir}/classes/java/main/${mod_id}.refmap.json",
+            "-AmappingTypes=tsrg",
+            // 注意选项名：Mixin 0.8.5 的 AP 不认识 "mappings"，读写映射走的是
+            // ObfuscationServiceFG3 注册的这三个键（其 getSupportedOptions 里只有
+            // reobfTsrgFile / reobfTsrgFiles / outTsrgFile）。
+            // reobfTsrgFile 就是「重混淆时用的那张表」，即 MCP→SRG，正是所需方向。
+            "-AreobfTsrgFile=${project.buildDir}/createMcpToSrg/output.tsrg",
+            // 里面登记的是「不需要映射」的模组类目标（InfuserMenu）。不登记的话，
+            // @Inject 到别人的模组类会报 "Unable to locate obfuscation mapping" 并中断编译。
+            "-AdependencyTargetsFile=${projectDir}/mixin.dependency-targets.txt",
+            "-AdefaultObfuscationEnv=searge",
+            // 把「目标没有映射数据」从 ERROR 降为 WARNING。
+            //
+            // 处理器只在**原版**映射表里查表；InfuserMenu 是别人的模组类，查不到就报错，
+            // 而这在模组类上恰恰是正常情况——它在 dev 与生产同名，本来就不需要映射条目。
+            // MessageType.applyOptions 接受 MSG_<类型名>=note|warning|error|disabled，
+            // 所以这里只降这一类的级别，其余诊断照旧（@Shadow 那几条本来就是 warning）。
+            //
+            // 为什么不换别的办法：dependencyTargetsFile 实测无效（TargetMap 只服务于
+            // 跨 jar 的目标导出查询）；@Mixin(targets="...") 也不触发 simulated 回落分支
+            // （那个分支只在目标类型压根解析不出来时才走）。
+            "-AMSG_NO_OBFDATA_FOR_TARGET=warning",
+            "-AMSG_NO_OBFDATA_FOR_CTOR=warning",
+    ]
+}
+
+// ---- 补齐注解处理器漏掉的字段映射 ----
+//
+// 实测（Mixin 0.8.5 + FG6 + tsrg）：处理器**方法查得动、字段查不动**。
+// 生成的 refmap 里方法条目都在（Player.giveExperienceLevels → m_6749_ 等），
+// 字段条目一条都没有，@Shadow 字段只留下一句 "Unable to locate obfuscation mapping for @Shadow field"，
+// 类文件里的字段名也仍是 x / y 没被改写。
+//
+// 后果只在正式包显现：dev 下 Slot 的字段本来就叫 x / y，所以一切正常；
+// 而生产环境里它叫 f_40220_ / f_40221_，没有 refmap 条目就意味着找不到目标字段，
+// **整个模组加载失败**。dev 完全测不出这个问题。
+//
+// 所以这里在处理器产出之后补上这两条。映射值不是手抄的——从 createMcpToSrg/output.tsrg
+// 里现查，查不到就让构建失败。这样它不会随 MC 版本静默腐坏。
+tasks.register('patchRefmap') {
+    dependsOn 'compileJava', 'createMcpToSrg'
+    def refmap = layout.buildDirectory.file("classes/java/main/${mod_id}.refmap.json")
+    def tsrg = layout.buildDirectory.file('createMcpToSrg/output.tsrg')
+    def mixinClass = 'com/apothinfuser/mixin/SlotMixin'
+    def targetClass = 'net/minecraft/world/inventory/Slot'
+    def fields = ['x', 'y']
+
+    // 不声明 outputs：这个任务要改一个已存在的产物，声明了反而会因输入输出同一路径而误判 up-to-date。
+    doLast {
+        def tsrgFile = tsrg.get().asFile
+        def refmapFile = refmap.get().asFile
+        if (!refmapFile.isFile()) throw new GradleException("refmap 不存在，注解处理器没跑起来: ${refmapFile}")
+
+        // 从 tsrg 的 Slot 段里读出字段 → SRG 名
+        def fieldMap = [:]
+        boolean inSlot = false
+        tsrgFile.eachLine('UTF-8') { String line ->
+            if (line.startsWith('\t')) {
+                if (inSlot) {
+                    def parts = line.trim().split(/\s+/)
+                    // 字段行是「名字 SRG名」两列；方法行第二列带括号，排除掉
+                    if (parts.length >= 2 && !parts[1].contains('(')) fieldMap[parts[0]] = parts[1]
+                }
+            }
+            else {
+                inSlot = line.startsWith(targetClass + ' ')
+            }
+        }
+
+        def json = new groovy.json.JsonSlurper().parse(refmapFile, 'UTF-8')
+        def entry = json.mappings[mixinClass]
+        if (entry == null) {
+            entry = [:]
+            json.mappings[mixinClass] = entry
+        }
+        fields.each { String f ->
+            def srg = fieldMap[f]
+            if (srg == null) throw new GradleException("tsrg 里找不到 ${targetClass}.${f} 的映射，拒绝凭空写一条")
+            entry[f] = "${srg}:I"
+            logger.lifecycle("patchRefmap: ${mixinClass} ${f} -> ${srg}:I")
+        }
+        // 两个环境段都写：环境名取自 -AdefaultObfuscationEnv=searge
+        json.data = json.data ?: [:]
+        json.data['searge'] = json.mappings
+
+        refmapFile.setText(groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json)), 'UTF-8')
+    }
+}
+
+tasks.named('jar', Jar).configure { dependsOn 'patchRefmap' }
+
+minecraft {
+    mappings channel: 'parchment', version: parchment_version
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', ''
+            property 'forge.logging.console.level', 'debug'
+
+            // dev 环境下 Mixin 会把 refmap 正向应用（dev 名 -> SRG 名），
+            // 必须靠这两个属性让 Mixin 再用 createSrgToMcp 的映射把 SRG 名映回 dev 名。
+            // 缺了它们，任何带 refmap 的模组（PuzzlesLib 等）都会在 apply 阶段崩溃：
+            //   InvalidAccessorException: No candidates were found matching f_49788_
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+        client {}
+        server {
+            // 避开 25565：用户可能同时跑着正式版 Minecraft，开局域网世界时会占该端口
+            args '--nogui', '--port', '25599'
+            // 把 Gradle CLI 上的 -Dapothinfuser.selftest=true 转发给 fork 出的游戏 JVM
+            property 'apothinfuser.selftest', System.getProperty('apothinfuser.selftest', 'false')
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com'
+    }
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // Mixin 注解处理器：生成 refmap。
+    //
+    // 曾经不引它，理由是「我们的 Mixin 都注入模组类，dev 与 prod 同名，不需要 refmap」——
+    // 这个理由是错的。以下三处打的是**原版**成员，注解里的字符串**不会被 reobf 重映射**：
+    //   SlotMixin            @Shadow Slot.x / Slot.y
+    //   InfuserMenuMixin     @Redirect Player.giveExperienceLevels
+    //   InfuserMenuMixin     @Redirect ExperienceOrb.award
+    // Forge 1.20.1 的生产环境里这些成员叫 f_40220_ / m_36246_ 之类（已核对神化生产 jar 的字节码），
+    // 所以没有 refmap 的包在真实游戏里会 APPLY 失败；dev 之所以能跑，是因为
+    // 下面那对 mixin.env.remapRefMap 属性在兜底——生产环境没有这层兜底。
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+    // 全部为硬依赖。Modrinth maven 坐标格式：maven.modrinth:<slug>:<version-string>
+    implementation fg.deobf("maven.modrinth:enchanting-infuser:${enchanting_infuser_version}")
+    implementation fg.deobf("maven.modrinth:puzzles-lib:${puzzles_lib_version}")
+    implementation fg.deobf("maven.modrinth:apotheosis:${apotheosis_version}")
+    implementation fg.deobf("maven.modrinth:placebo:${placebo_version}")
+    implementation fg.deobf("maven.modrinth:apothic-attributes:${apothic_attributes_version}")
+
+    // 神化的软依赖（游戏内指南书）。不加也能启动，但 apotheosis:book 战利品表
+    // 会因为 patchouli:guide_book 未注册而报解析错误。仅运行时需要。
+    runtimeOnly fg.deobf("maven.modrinth:patchouli:${patchouli_version}")
+
+    // 仅开发期：JEI 用来查神化灌注配方的四维要求。
+    // 必须是 JEI 而不是 EMI——神化只提供了 EnchJEIPlugin，没有 EMI 插件，
+    // EMI 根本无法显示 apotheosis:enchanting 这类配方。不参与编译，也不进产物。
+    runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
+
+    // PuzzlesLib 通过 Jar-in-Jar 内嵌了 puzzlesaccessapi（新版还有 mixinextras），
+    // 但 ForgeGradle 在 dev 环境下不会自动展开嵌套 jar，导致 PuzzlesLib 自身的
+    // mixin（如 accessor.BlockAccessor）APPLY 失败并崩溃。
+    // 用 fileTree 而非固定文件名，这样切换 puzzles-lib 版本时不必改这里的代码。
+    implementation fg.deobf(fileTree('libs') { include 'puzzlesaccessapi-*.jar' })
+    implementation fileTree('libs') { include 'mixinextras-*.jar' }
+}
+
+// 自动从 puzzles-lib 产物中提取内嵌的 JiJ jar，避免手工维护 libs/ 目录
+tasks.register('extractJiJ') {
+    group = 'apothinfuser'
+    description = '从 puzzles-lib 依赖产物中提取内嵌的 Jar-in-Jar 依赖'
+    def outDir = layout.projectDirectory.dir('libs')
+    def cfg = configurations.detachedConfiguration(
+            dependencies.create("maven.modrinth:puzzles-lib:${puzzles_lib_version}"))
+    cfg.transitive = false
+    inputs.files(cfg)
+    outputs.dir(outDir)
+    doLast {
+        outDir.asFile.mkdirs()
+        cfg.files.each { jar ->
+            zipTree(jar).matching { include 'META-INF/jarjar/*.jar' }.each { nested ->
+                def target = new File(outDir.asFile, nested.name)
+                if (!target.exists() || target.length() != nested.length()) {
+                    target.bytes = nested.bytes
+                    logger.lifecycle("extractJiJ: 提取 ${nested.name}")
+                }
+            }
+        }
+    }
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            forge_version_range    : forge_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description,
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1',
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'MixinConfigs'            : "${mod_id}.mixins.json"
+        ])
+    }
+    finalizedBy 'reobfJar'
+}

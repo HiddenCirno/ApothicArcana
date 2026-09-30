@@ -1,0 +1,12 @@
+{
+  "block.apothinfuser.ultimate_arcane_enchanting_table": "Ultimate Arcane Enchanting Table",
+  "block.apothinfuser.arcane_enchanting_table": "Arcane Enchanting Table",
+  "block.apothinfuser.arcane_enchanting_table.desc": "Total control over the power of knowledge.",
+  "block.apothinfuser.ultimate_arcane_enchanting_table.desc": "The end of enchanting theory. The miracle every mage dreams of.",
+  "advancements.apothinfuser.arcane_enchanting_table": "Mastery of Magic",
+  "advancements.apothinfuser.arcane_enchanting_table.desc": "Craft an Arcane Enchanting Table, which lets you tune Eterna, Quanta and Arcana yourself.",
+  "advancements.apothinfuser.ultimate_arcane_enchanting_table": "Goodbye, All Uncertainty",
+  "advancements.apothinfuser.ultimate_arcane_enchanting_table.desc": "Craft the Ultimate Arcane Enchanting Table and command every enchantment.",
+  "advancements.apothinfuser.eternal_end": "The End of Eternity",
+  "advancements.apothinfuser.eternal_end.desc": "Infuse any item at the Ultimate Arcane Enchanting Table."
+}

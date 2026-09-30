@@ -1,0 +1,12 @@
+{
+  "block.apothinfuser.ultimate_arcane_enchanting_table": "终极奥术附魔台",
+  "block.apothinfuser.arcane_enchanting_table": "奥术附魔台",
+  "block.apothinfuser.arcane_enchanting_table.desc": "完全控制知识之力。",
+  "block.apothinfuser.ultimate_arcane_enchanting_table.desc": "附魔理论的终点，魔法师梦寐以求的奇迹。",
+  "advancements.apothinfuser.arcane_enchanting_table": "掌控魔力",
+  "advancements.apothinfuser.arcane_enchanting_table.desc": "制作奥术附魔台，它允许你自行调控位阶、量子化和阿卡那的范围。",
+  "advancements.apothinfuser.ultimate_arcane_enchanting_table": "再见了，所有的不确定性",
+  "advancements.apothinfuser.ultimate_arcane_enchanting_table.desc": "制作终极奥术附魔台，操控所有魔咒。",
+  "advancements.apothinfuser.eternal_end": "永恒尽头",
+  "advancements.apothinfuser.eternal_end.desc": "使用终极奥术附魔台灌注任意物品。"
+}
