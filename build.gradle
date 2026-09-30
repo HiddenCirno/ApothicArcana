@@ -186,6 +186,13 @@ repositories {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
     }
+    maven {
+        // Jade 只发布在 CurseForge。Modrinth maven 上虽然有 jade 这个项目，
+        // 但它的 maven 元数据整条路径 404（实测），所以必须走这里。
+        name = 'CurseForge'
+        url = 'https://www.cursemaven.com'
+        content { includeGroup 'curse.maven' }
+    }
 }
 
 dependencies {
@@ -218,6 +225,20 @@ dependencies {
     // 必须是 JEI 而不是 EMI——神化只提供了 EnchJEIPlugin，没有 EMI 插件，
     // EMI 根本无法显示 apotheosis:enchanting 这类配方。不参与编译，也不进产物。
     runtimeOnly fg.deobf("maven.modrinth:jei:${jei_version}")
+
+    // Jade：**运行期软依赖**，mods.toml 里一个字都不提，玩家不装 Jade 照样能玩。
+    //
+    // 用 implementation 而不是 compileOnly，有两个理由：
+    //   1. compileOnly 只上编译类路径、不上 dev 运行类路径，那样就没法在 dev 里
+    //      真正验证插件被 Jade 认到（而"插件没被认到"恰恰是这条链上唯一会静默失败的环节）；
+    //   2. Forge 不会把 implementation 的依赖打进产物 jar，所以并不影响发布包。
+    //
+    // 不装 Jade 时为什么不会崩：Jade 是通过 Forge 的 ModFileScanData 找插件的——
+    // 它拿注解的 ASM Type 比字符串（实测字节码：annotationType().getClassName()
+    // .equals("snownee.jade.api.WailaPlugin")），**全程不加载我们这个类**。
+    // Jade 缺席时这段代码根本不会执行，唯一引用本类的入口消失，
+    // 于是 ApothInfuserJadePlugin 永远不被类加载，不存在 NoClassDefFoundError。
+    implementation fg.deobf("curse.maven:jade-324717:${jade_file_id}")
 
     // PuzzlesLib 通过 Jar-in-Jar 内嵌了 puzzlesaccessapi（新版还有 mixinextras），
     // 但 ForgeGradle 在 dev 环境下不会自动展开嵌套 jar，导致 PuzzlesLib 自身的

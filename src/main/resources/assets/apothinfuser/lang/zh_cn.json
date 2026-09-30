@@ -8,5 +8,7 @@
   "advancements.apothinfuser.ultimate_arcane_enchanting_table": "再见了，所有的不确定性",
   "advancements.apothinfuser.ultimate_arcane_enchanting_table.desc": "制作终极奥术附魔台，操控所有魔咒。",
   "advancements.apothinfuser.eternal_end": "永恒尽头",
-  "advancements.apothinfuser.eternal_end.desc": "使用终极奥术附魔台灌注任意物品。"
+  "advancements.apothinfuser.eternal_end.desc": "使用终极奥术附魔台灌注任意物品。",
+
+  "config.jade.plugin_apothinfuser.table_stats": "奥术台四维数值"
 }

@@ -103,6 +103,19 @@ public abstract class InfuserMenuMixin implements UltimateInfuserMenuAccess {
         // 灌注台把"宝藏魔咒是否可用"做成了全局配置开关（默认 false），从不查询周围书架。
         // 奥术宝藏深暗书架通过 IEnchantingBlock#allowsTreasure → TableStats.treasure() 传上来。
         config.types.allowTreasureEnchantments = stats.treasure();
+        // 诅咒必须跟着一起放行，否则奥术宝藏深暗书架在终极台子上会"只开一半"：
+        // 经验修补能操作，绑定/消失诅咒却动不了。
+        //
+        // 原因是**神化把两者合并成了一个概念，灌注台却把它们拆成了两个开关**：
+        //   神化：原版 BindingCurse/VanishingCurse 的 isTreasureOnly() 返回 true（已实测），
+        //         而神化用 ench.isTreasureOnly() 填 EnchantmentInfo.treasure，
+        //         所以 EnchantmentInfo.isTreasure() 对诅咒也为真 ——"允许宝藏"天然就放行了诅咒。
+        //         这正是宝藏书架在神化附魔台与奥术附魔台上能摇出诅咒的原因。
+        //   灌注台：EnchantmentUtil.getAvailableEnchantments 里是四个**互相独立**的闸门，
+        //         诅咒同时命中 isCurse 与 isTreasureOnly 两条，必须两个开关都开才放行。
+        // 我们只设了 treasure，于是 allowCursesEnchantments 保持默认 false，诅咒卡在 isCurse 那关。
+        // 两处都赋同一个值，三张台子的行为才一致。
+        config.types.allowCursesEnchantments = stats.treasure();
 
         config.setInfusionResult(apothinfuser$matchInfusion(level, stack, config));
 
