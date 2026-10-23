@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "apotheosis:uncommon_material"
+    },
+    {
+      "item": "apotheosis:uncommon_material"
+    },
+    {
+      "item": "apotheosis:uncommon_material"
+    },
+    {
+      "item": "apotheosis:uncommon_material"
+    },
+    {
+      "item": "minecraft:gold_ingot"
+    }
+  ],
+  "result": {
+    "item": "apotheosis:rare_material"
+  }
+}

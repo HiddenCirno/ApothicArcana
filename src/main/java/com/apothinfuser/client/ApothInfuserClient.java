@@ -3,10 +3,13 @@ package com.apothinfuser.client;
 import com.apothinfuser.ApothInfuser;
 import com.apothinfuser.client.gui.ArcaneEnchantScreen;
 import com.apothinfuser.client.gui.UltimateArcaneEnchantingScreen;
+import com.apothinfuser.integration.UltimateInfuserIntegration;
 import com.apothinfuser.registry.ModRegistry;
+import dev.shadowsoffire.apotheosis.adventure.affix.reforging.ReforgingTableTileRenderer;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -29,8 +32,12 @@ public final class ApothInfuserClient {
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            MenuScreens.register(ModRegistry.ULTIMATE_ARCANE_ENCHANTING_MENU.get(), UltimateArcaneEnchantingScreen::new);
             MenuScreens.register(ModRegistry.ARCANE_ENCHANTING_MENU.get(), ArcaneEnchantScreen::new);
+            // 终极台是可选联动：没有灌注台时既没有它的 MenuType，也不该加载它的 Screen 类。
+            if (ModList.get().isLoaded("enchantinginfuser")) {
+                MenuScreens.register(UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_MENU.get(),
+                        UltimateArcaneEnchantingScreen::new);
+            }
         });
     }
 
@@ -40,7 +47,15 @@ public final class ApothInfuserClient {
         // 自己实现的原因：原版渲染器的书册贴图是硬编码单例，且泛型参数只认原版方块实体类型。
         event.registerBlockEntityRenderer(ModRegistry.ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get(),
                 ArcaneTableRenderer::arcaneTable);
-        event.registerBlockEntityRenderer(ModRegistry.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get(),
-                ArcaneTableRenderer::ultimateTable);
+        if (ModList.get().isLoaded("enchantinginfuser")) {
+            event.registerBlockEntityRenderer(
+                    UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get(),
+                    ArcaneTableRenderer::ultimateTable);
+        }
+        // 极限重铸台：世界里的锤子动画由神化的渲染器画，动画进度来自
+        // ReforgingTableTile.clientTick 推的 time/step1（见 ModRegistry 里 BE 类型的注释）。
+        // 我们的方块实体类型因此声明为 BlockEntityType<ReforgingTableTile>，泛型正好匹配。
+        event.registerBlockEntityRenderer(ModRegistry.ULTIMATE_REFORGING_TABLE_BLOCK_ENTITY.get(),
+                context -> new ReforgingTableTileRenderer());
     }
 }

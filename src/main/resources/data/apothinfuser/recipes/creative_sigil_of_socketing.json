@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "AEA",
+    "BBB",
+    "ADA"
+  ],
+  "key": {
+    "A": {
+      "item": "apotheosis:ancient_material"
+    },
+    "B": {
+      "item": "apotheosis:sigil_of_socketing"
+    },
+    "D": {
+      "item": "apotheosis:extraction_tome"
+    },
+    "E": {
+      "item": "apotheosis:infused_breath"
+    }
+  },
+  "result": {
+    "item": "apothinfuser:creative_sigil_of_socketing",
+    "count": 3
+  }
+}

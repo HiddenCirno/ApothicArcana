@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "apotheosis:epic_material"
+    },
+    {
+      "item": "apotheosis:epic_material"
+    },
+    {
+      "item": "apotheosis:epic_material"
+    },
+    {
+      "item": "apotheosis:epic_material"
+    },
+    {
+      "item": "minecraft:emerald"
+    }
+  ],
+  "result": {
+    "item": "apotheosis:mythic_material"
+  }
+}

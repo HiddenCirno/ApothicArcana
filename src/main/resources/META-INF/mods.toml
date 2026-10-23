@@ -23,20 +23,15 @@ license="${mod_license}"
     ordering="NONE"
     side="BOTH"
 
-# 我们 Mixin 进 InfuserMenu 的私有构造器，因此限定在 8.0.x 区间：
-# 若灌注台在 8.1 改动该签名，我们的 @Invoker 会失配，宁可在此直接拦住。
+# Enchanting Infuser 是**可选联动**：装了才有终极奥术附魔台，不装时本模组其余内容照常工作。
+# 我们 Mixin 进 InfuserMenu 的私有构造器，因此仍限定在 8.0.x 区间——
+# 若灌注台在 8.1 改动该签名，Mixin 会失配，联动层的启动自检会直接报错。
+# puzzleslib 不在此声明：我们代码不直接引用它，灌注台自己的 mods.toml 会负责它。
 [[dependencies.${mod_id}]]
     modId="enchantinginfuser"
-    mandatory=true
+    mandatory=false
     versionRange="[8.0.3,8.1)"
     ordering="AFTER"
-    side="BOTH"
-
-[[dependencies.${mod_id}]]
-    modId="puzzleslib"
-    mandatory=true
-    versionRange="[8.1.13,)"
-    ordering="NONE"
     side="BOTH"
 
 # 我们调用 ApothEnchantmentMenu.gatherStats / EnchModule.getEnchInfo

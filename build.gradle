@@ -300,7 +300,8 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
-                'MixinConfigs'            : "${mod_id}.mixins.json"
+                // 第二个配置只在装了 Enchanting Infuser 时真正应用（见 InfuserMixinPlugin）。
+                'MixinConfigs'            : "${mod_id}.mixins.json,${mod_id}.infuser.mixins.json"
         ])
     }
     finalizedBy 'reobfJar'

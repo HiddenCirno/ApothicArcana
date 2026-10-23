@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "apothinfuser:item/creative_sigil_of_socketing"
+  }
+}

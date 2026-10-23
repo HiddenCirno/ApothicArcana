@@ -262,19 +262,17 @@ public abstract class InfuserMenuMixin implements UltimateInfuserMenuAccess {
     // ------------------------------------------------------------------
 
     /**
-     * 功率上限由「周围书架提供的位阶」决定，而不是灌注台那个硬编码的 50
-     * （神化 provider 的 {@code getMaximumEnchantPower()} 恒为 50，与书架无关）。
-     */
-    @Inject(method = "getMaxPower", at = @At("HEAD"), cancellable = true)
-    private void apothinfuser$maxPowerFromShelves(CallbackInfoReturnable<Integer> cir) {
-        if (this.config instanceof UltimateInfuserConfig config) {
-            cir.setReturnValue((int) config.getMaxEterna());
-        }
-    }
-
-    /**
      * 当前功率由位阶滑块决定。原实现读的是 {@code enchantingPower} DataSlot
      * （由书架扫描算出），我们整条替换掉，因此不需要碰那个私有字段。
+     * <p>
+     * <b>刻意<b>不</b>覆盖 {@code getMaxPower()}</b>：它是稀有度阈值与升级区间的
+     * <b>参照系</b>，原实现取神化 provider 的 {@code getMaximumEnchantPower()}（恒为 50），
+     * 于是阈值固定为 10 / 20 / 30、等级区间固定跨 20 点位阶。
+     * <p>
+     * 曾经把它覆盖成「书架提供的位阶上限」，结果是阈值跟着书架同比缩小：
+     * 书架上限只有 5 时，三档阈值变成 1 / 2 / 3，与进阶高级附魔台的计算方式完全不同。
+     * 书架上限本来就由滑块的最大行程体现（{@code getSelectedEterna} 夹到 {@code maxEterna}），
+     * 不需要也不应该再参与阈值计算。
      */
     @Inject(method = "getCurrentPower", at = @At("HEAD"), cancellable = true)
     private void apothinfuser$currentPowerFromSlider(CallbackInfoReturnable<Integer> cir) {
@@ -289,13 +287,26 @@ public abstract class InfuserMenuMixin implements UltimateInfuserMenuAccess {
      * 不锁的话它会走稀有度门槛（{@code InertEnchantment} 是 VERY_RARE，需要 0.6×位阶），
      * 位阶不够时 {@code maxLevel} 算出来是 0——而列表条目用 {@code maxLevel == 0} 判定"未解锁"，
      * 会把它显示成乱码名字且完全不可操作。
+     * <p>
+     * <b>另外封死"台子没有任何位阶来源"这个边界</b>：没有书架时 {@code maxEterna} 为 0，
+     * 滑块只能停在 0。按灌注台的原公式，此时常见魔咒仍会解锁到 3 级左右
+     * （{@code commonMultiplier = -0.2}，阈值是负数），稀有以上才被 10/20/30 挡住。
+     * 但神化附魔台在 0 位阶下是<b>一级都放不出来</b>的（{@code getMinCost(1) >= 1}），
+     * 三张台子的直觉应当一致，所以这里在位阶上限不足 1 时统一返回 maxLevel = 0。
+     * <p>
+     * 需求位阶报 1，让 tooltip 显示"当前 0 / 需求 1"而不是一个没有意义的 0。
      */
     @Inject(method = "getMaxLevel", at = @At("HEAD"), cancellable = true)
     private void apothinfuser$infusionMaxLevel(Enchantment enchantment,
             CallbackInfoReturnable<Pair<OptionalInt, Integer>> cir) {
-        if (!(this.config instanceof UltimateInfuserConfig)) return;
+        if (!(this.config instanceof UltimateInfuserConfig config)) return;
         if (enchantment == Ench.Enchantments.INFUSION.get()) {
             cir.setReturnValue(Pair.of(OptionalInt.empty(), 1));
+            return;
+        }
+        // 不足 1 点（含 0.75 这种小数上限）：台子没有可用的位阶，整张表锁定。
+        if (config.getMaxEterna() < 1.0F) {
+            cir.setReturnValue(Pair.of(OptionalInt.of(1), 0));
         }
     }
 

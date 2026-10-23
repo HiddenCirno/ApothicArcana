@@ -2,7 +2,7 @@ package com.apothinfuser.world.inventory;
 
 import com.apothinfuser.config.UltimateInfuserConfig;
 import com.apothinfuser.mixin.InfuserMenuInvoker;
-import com.apothinfuser.registry.ModRegistry;
+import com.apothinfuser.integration.UltimateInfuserIntegration;
 import com.apothinfuser.world.level.block.entity.UltimateInfuserBlockEntity;
 import fuzs.enchantinginfuser.world.inventory.InfuserMenu;
 import net.minecraft.world.Container;
@@ -31,13 +31,13 @@ public final class UltimateInfuserMenus {
             config.restoreSelections(blockEntity.getSelectedEterna(), blockEntity.getSelectedQuanta(),
                     blockEntity.getSelectedArcana());
         }
-        return InfuserMenuInvoker.apothinfuser$create(ModRegistry.ULTIMATE_ARCANE_ENCHANTING_MENU.get(), id, inventory,
+        return InfuserMenuInvoker.apothinfuser$create(UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_MENU.get(), id, inventory,
                 container, levelAccess, config);
     }
 
     /** 客户端：由我们的 MenuType 工厂调用，客户端无容器也无世界访问权 */
     public static InfuserMenu createClientMenu(int id, Inventory inventory) {
-        return InfuserMenuInvoker.apothinfuser$create(ModRegistry.ULTIMATE_ARCANE_ENCHANTING_MENU.get(), id, inventory,
+        return InfuserMenuInvoker.apothinfuser$create(UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_MENU.get(), id, inventory,
                 new SimpleContainer(1), ContainerLevelAccess.NULL, UltimateInfuserConfig.create());
     }
 }

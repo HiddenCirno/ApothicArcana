@@ -2,7 +2,6 @@ package com.apothinfuser.client;
 
 import com.apothinfuser.ApothInfuser;
 import com.apothinfuser.world.level.block.entity.ArcaneEnchantTile;
-import com.apothinfuser.world.level.block.entity.UltimateInfuserBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
@@ -72,8 +71,15 @@ public class ArcaneTableRenderer<T extends EnchantmentTableBlockEntity> implemen
         return new ArcaneTableRenderer<>(context, ARCANE_BOOK, false);
     }
 
-    /** 终极奥术附魔台：多一层悬浮的待附魔物品（这是它继承自附魔灌注台的表现） */
-    public static ArcaneTableRenderer<UltimateInfuserBlockEntity> ultimateTable(BlockEntityRendererProvider.Context context) {
+    /**
+     * 终极奥术附魔台：多一层悬浮的待附魔物品（这是它继承自附魔灌注台的表现）。
+     * <p>
+     * 返回类型刻意写成<b>泛型</b>而不是具体的 {@code UltimateInfuserBlockEntity}：
+     * 后者是可选联动里的类，写进签名会让本类（无条件加载）的签名引用到它。
+     * 虽然泛型签名在类加载时不会被解析，但省掉这层隐性依赖更干净。
+     */
+    public static <T extends EnchantmentTableBlockEntity> ArcaneTableRenderer<T> ultimateTable(
+            BlockEntityRendererProvider.Context context) {
         return new ArcaneTableRenderer<>(context, ULTIMATE_BOOK, true);
     }
 

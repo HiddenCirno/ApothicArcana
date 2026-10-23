@@ -1,6 +1,6 @@
 package com.apothinfuser.world.level.block;
 
-import com.apothinfuser.registry.ModRegistry;
+import com.apothinfuser.integration.UltimateInfuserIntegration;
 import com.apothinfuser.world.inventory.UltimateInfuserMenus;
 import com.apothinfuser.world.level.block.entity.UltimateInfuserBlockEntity;
 import fuzs.enchantinginfuser.world.level.block.InfuserBlock;
@@ -55,7 +55,7 @@ public class UltimateInfuserBlock extends EnchantmentTableBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         // 客户端需要漂浮的书本动画
         return level.isClientSide
-                ? createTickerHelper(type, ModRegistry.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get(),
+                ? createTickerHelper(type, UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get(),
                         EnchantmentTableBlockEntity::bookAnimationTick)
                 : null;
     }

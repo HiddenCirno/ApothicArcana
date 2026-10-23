@@ -1,0 +1,13 @@
+{
+  "type": "apotheosis:reforging",
+  "conditions": [
+    {
+      "type": "apotheosis:module",
+      "module": "adventure"
+    }
+  ],
+  "rarity": "apotheosis:ancient",
+  "material_cost": 3,
+  "sigil_cost": 6,
+  "level_cost": 100
+}

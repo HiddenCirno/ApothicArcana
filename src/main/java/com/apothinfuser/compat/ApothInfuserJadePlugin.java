@@ -5,6 +5,7 @@ import com.apothinfuser.world.level.block.ArcaneEnchantingTableBlock;
 import com.apothinfuser.world.level.block.UltimateInfuserBlock;
 import dev.shadowsoffire.apotheosis.util.CommonTooltipUtil;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.ModList;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.ITooltip;
@@ -72,8 +73,14 @@ public class ApothInfuserJadePlugin implements IWailaPlugin, IBlockComponentProv
     @Override
     public void registerClient(IWailaClientRegistration reg) {
         reg.registerBlockComponent(this, ArcaneEnchantingTableBlock.class);
-        reg.registerBlockComponent(this, UltimateInfuserBlock.class);
-        ApothInfuser.LOGGER.info("已接入 Jade：奥术附魔台与终极奥术附魔台将显示四维数值");
+        // 终极台是可选联动：没装灌注台时它压根没注册，连类字面量都不该触碰
+        // （类字面量会真正加载该类，而它的方块实体继承自灌注台）。
+        if (ModList.get().isLoaded("enchantinginfuser")) {
+            reg.registerBlockComponent(this, UltimateInfuserBlock.class);
+            ApothInfuser.LOGGER.info("已接入 Jade：奥术附魔台与终极奥术附魔台将显示四维数值");
+        } else {
+            ApothInfuser.LOGGER.info("已接入 Jade：奥术附魔台将显示四维数值（未检测到 Enchanting Infuser）");
+        }
     }
 
     /** 没有需要在服务端采集的数据，留空。 */

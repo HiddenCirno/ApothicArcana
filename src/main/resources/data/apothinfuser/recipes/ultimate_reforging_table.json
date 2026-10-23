@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " A ",
+    "BCB",
+    "DDD"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:nether_star"
+    },
+    "B": {
+      "item": "apotheosis:mythic_material"
+    },
+    "C": {
+      "item": "apotheosis:reforging_table"
+    },
+    "D": {
+      "item": "minecraft:crying_obsidian"
+    }
+  },
+  "result": {
+    "item": "apothinfuser:ultimate_reforging_table"
+  }
+}

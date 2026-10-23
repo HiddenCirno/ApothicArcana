@@ -1,2 +1,2 @@
 Manifest-Version: 1.0
-MixinConfigs: apothinfuser.mixins.json
+MixinConfigs: apothinfuser.mixins.json,apothinfuser.infuser.mixins.json

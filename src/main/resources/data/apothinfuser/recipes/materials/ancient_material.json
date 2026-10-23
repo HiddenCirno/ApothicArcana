@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "apotheosis:mythic_material"
+    },
+    {
+      "item": "apotheosis:mythic_material"
+    },
+    {
+      "item": "apotheosis:mythic_material"
+    },
+    {
+      "item": "apotheosis:mythic_material"
+    },
+    {
+      "item": "minecraft:nether_star"
+    }
+  ],
+  "result": {
+    "item": "apotheosis:ancient_material"
+  }
+}

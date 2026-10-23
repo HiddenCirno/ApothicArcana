@@ -1,6 +1,6 @@
 package com.apothinfuser.world.level.block.entity;
 
-import com.apothinfuser.registry.ModRegistry;
+import com.apothinfuser.integration.UltimateInfuserIntegration;
 import fuzs.enchantinginfuser.world.level.block.entity.ForgeInfuserBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -33,7 +33,7 @@ public class UltimateInfuserBlockEntity extends ForgeInfuserBlockEntity {
 
     @Override
     public BlockEntityType<?> getType() {
-        return ModRegistry.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get();
+        return UltimateInfuserIntegration.ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY.get();
     }
 
     public float getSelectedEterna() {

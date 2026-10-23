@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "apotheosis:common_material"
+    },
+    {
+      "item": "apotheosis:common_material"
+    },
+    {
+      "item": "apotheosis:common_material"
+    },
+    {
+      "item": "apotheosis:common_material"
+    },
+    {
+      "item": "minecraft:iron_ingot"
+    }
+  ],
+  "result": {
+    "item": "apotheosis:uncommon_material"
+  }
+}

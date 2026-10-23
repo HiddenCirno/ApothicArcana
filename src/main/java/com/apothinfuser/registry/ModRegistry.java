@@ -2,18 +2,26 @@ package com.apothinfuser.registry;
 
 import com.apothinfuser.ApothInfuser;
 import com.apothinfuser.world.inventory.ArcaneEnchantmentMenu;
-import com.apothinfuser.world.inventory.UltimateInfuserMenus;
 import com.apothinfuser.world.level.block.ArcaneEnchantingTableBlock;
-import com.apothinfuser.world.level.block.UltimateInfuserBlock;
+import com.apothinfuser.world.level.block.UltimateReforgingTableBlock;
 import com.apothinfuser.world.level.block.entity.ArcaneEnchantTile;
-import com.apothinfuser.world.level.block.entity.UltimateInfuserBlockEntity;
-import fuzs.enchantinginfuser.world.inventory.InfuserMenu;
+import com.apothinfuser.world.level.block.entity.UltimateReforgingTableTile;
+import com.google.common.collect.ImmutableSet;
+import dev.shadowsoffire.apotheosis.adventure.Adventure;
+import dev.shadowsoffire.apotheosis.adventure.affix.reforging.ReforgingTableTile;
+import dev.shadowsoffire.apotheosis.util.TooltipItem;
+import dev.shadowsoffire.placebo.block_entity.TickingBlockEntityType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.EnchantmentMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -39,34 +47,12 @@ public final class ModRegistry {
             DeferredRegister.create(ForgeRegistries.MENU_TYPES, ApothInfuser.MOD_ID);
 
     // ------------------------------------------------------------------
-    // 终极奥术附魔台（上位台子）
+    // 终极奥术附魔台（上位台子）—— 已整体移到可选联动层
     //
-    // 注册名已从 ultimate_infuser 统一改为 ultimate_arcane_enchanting_table，
-    // 与下位的 arcane_enchanting_table 成对。注意 Java 类名仍是 UltimateInfuser* ——
-    // 那是内部实现命名，不影响玩家看到的一切，改名收益低而改动面大。
+    // 它依赖 Enchanting Infuser 的 Menu / Config / BlockEntity，注册时必须保证
+    // 没装灌注台的环境不会加载那些类型，因此不能放在本类（本类会在构造期无条件初始化）。
+    // 见 com.apothinfuser.integration.UltimateInfuserIntegration。
     // ------------------------------------------------------------------
-
-    public static final RegistryObject<UltimateInfuserBlock> ULTIMATE_ARCANE_ENCHANTING_TABLE =
-            BLOCKS.register("ultimate_arcane_enchanting_table",
-                    () -> new UltimateInfuserBlock(BlockBehaviour.Properties.copy(Blocks.ENCHANTING_TABLE)));
-
-    public static final RegistryObject<Item> ULTIMATE_ARCANE_ENCHANTING_TABLE_ITEM =
-            ITEMS.register("ultimate_arcane_enchanting_table",
-                    () -> new BlockItem(ULTIMATE_ARCANE_ENCHANTING_TABLE.get(), new Item.Properties()));
-
-    public static final RegistryObject<BlockEntityType<UltimateInfuserBlockEntity>> ULTIMATE_ARCANE_ENCHANTING_TABLE_BLOCK_ENTITY =
-            BLOCK_ENTITIES.register("ultimate_arcane_enchanting_table", () -> BlockEntityType.Builder
-                    .of(UltimateInfuserBlockEntity::new, ULTIMATE_ARCANE_ENCHANTING_TABLE.get())
-                    .build(null));
-
-    /**
-     * 注意用的是我们自己的 MenuType，而不是灌注台的 {@code ADVANCED_INFUSING_MENU_TYPE}：
-     * 客户端靠 MenuType 决定打开哪个 Screen，而 {@code MenuScreens.register} 对同一类型重复注册会抛异常，
-     * 无法覆盖灌注台已有的注册。自有类型让 {@code UltimateArcaneEnchantingScreen} 能被正确关联。
-     */
-    public static final RegistryObject<MenuType<InfuserMenu>> ULTIMATE_ARCANE_ENCHANTING_MENU =
-            MENUS.register("ultimate_arcane_enchanting", () -> new MenuType<>(UltimateInfuserMenus::createClientMenu,
-                    FeatureFlags.DEFAULT_FLAGS));
 
     // ------------------------------------------------------------------
     // 奥术附魔台（下位台子）
@@ -110,6 +96,61 @@ public final class ModRegistry {
             MENUS.register("arcane_enchanting", () -> new MenuType<>(ArcaneEnchantmentMenu::new,
                     FeatureFlags.DEFAULT_FLAGS));
 
+    // ------------------------------------------------------------------
+    // 极限重铸台
+    //
+    // 神化的重铸台把等级上限写成方块常量：简易 2（rare）、普通 4（mythic）。
+    // 这一档给 5（ancient），配合数据包里的 reforge/ancient 配方，远古材料才能放进去。
+    // 外观直接复用奥术附魔台的贴图与模型（父模型仍是原版 enchanting_table）。
+    // ------------------------------------------------------------------
+
+    public static final RegistryObject<UltimateReforgingTableBlock> ULTIMATE_REFORGING_TABLE =
+            BLOCKS.register("ultimate_reforging_table",
+                    () -> new UltimateReforgingTableBlock(BlockBehaviour.Properties.of()
+                            .requiresCorrectToolForDrops().strength(4.0F, 1000.0F)));
+
+    public static final RegistryObject<Item> ULTIMATE_REFORGING_TABLE_ITEM =
+            ITEMS.register("ultimate_reforging_table",
+                    () -> new BlockItem(ULTIMATE_REFORGING_TABLE.get(), new Item.Properties().rarity(Rarity.EPIC)));
+
+    /**
+     * 必须是 Placebo 的 {@link TickingBlockEntityType}，不能是原版 {@code BlockEntityType.Builder}。
+     * <p>
+     * 重铸台方块继承自 {@code ReforgingTableBlock implements TickingEntityBlock}，而
+     * {@code TickingEntityBlock.getTicker} 会检查方块实体类型是不是 {@code TickingBlockEntityType}：
+     * 不是的话它只打一行错误日志并返回 {@code null}——<b>不崩，但方块实体永远不 tick</b>。
+     * 症状正是"锤子不动"：{@code ReforgingTableTile.clientTick} 负责推进 {@code time/step1}，
+     * 世界里的锤子动画完全依赖这两个字段。
+     * <p>
+     * 泛型放宽到 {@link ReforgingTableTile}：这样客户端可以直接复用神化的
+     * {@code ReforgingTableTileRenderer}（它实现的是 {@code BlockEntityRenderer<ReforgingTableTile>}，
+     * 泛型不变，不能直接接受更具体的子类）。工厂仍然返回我们的子类。
+     */
+    public static final RegistryObject<BlockEntityType<ReforgingTableTile>> ULTIMATE_REFORGING_TABLE_BLOCK_ENTITY =
+            BLOCK_ENTITIES.register("ultimate_reforging_table", () -> new TickingBlockEntityType<>(
+                    UltimateReforgingTableTile::new,
+                    ImmutableSet.of(ULTIMATE_REFORGING_TABLE.get()),
+                    true, false));
+
+    // ------------------------------------------------------------------
+    // 创造模式镶孔符石
+    //
+    // 不需要任何 Java 行为：神化的 apotheosis:add_sockets 是数据驱动的锻造配方，
+    // 孔数上限就是配方 JSON 里的 max_sockets。所以我们只提供物品 + 一份配方
+    // （data/apothinfuser/recipes/creative_add_sockets.json，max_sockets = int 上限）。
+    //
+    // 走的是标准锻造台流程（模板槽留空、装备放 base、符石放 addition），
+    // 因此和神化自己的符石一样：取走产物时符石会被消耗 1 个。
+    // ------------------------------------------------------------------
+
+    public static final RegistryObject<Item> CREATIVE_SIGIL_OF_SOCKETING =
+            ITEMS.register("creative_sigil_of_socketing",
+                    () -> new TooltipItem(new Item.Properties().rarity(Rarity.EPIC)));
+
+    /** 神化的冒险创造页；物品放这里，和符石本尊同一页。 */
+    private static final ResourceKey<CreativeModeTab> APOTHEOSIS_ADVENTURE_TAB =
+            ResourceKey.create(Registries.CREATIVE_MODE_TAB, new ResourceLocation("apotheosis", "adventure"));
+
     public static void register(IEventBus modBus) {
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
@@ -126,7 +167,16 @@ public final class ModRegistry {
     private static void onBuildCreativeTabContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             event.accept(ARCANE_ENCHANTING_TABLE_ITEM.get());
-            event.accept(ULTIMATE_ARCANE_ENCHANTING_TABLE_ITEM.get());
+            // 终极奥术附魔台由联动层自己往这一页加（仅在装了 Enchanting Infuser 时）。
+        }
+        // 冒险页：极限重铸台与神化的两张重铸台放一起，创造符石也在这里。
+        // 冒险模块被关掉时这个页签根本不会创建，事件不会以那个 key 触发，自然什么也不做。
+        if (event.getTabKey().equals(APOTHEOSIS_ADVENTURE_TAB)) {
+            // 神化只把 common~mythic 的珍宝材料塞进了这一页，远古材料是有意排除的
+            // （weight 0、正常不可得）。这里按需求补上，让创造模式可以直接拿到「无限之体现」。
+            event.accept(Adventure.Items.ANCIENT_MATERIAL.get());
+            event.accept(ULTIMATE_REFORGING_TABLE_ITEM.get());
+            event.accept(CREATIVE_SIGIL_OF_SOCKETING.get());
         }
     }
 }

@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "apotheosis:rare_material"
+    },
+    {
+      "item": "apotheosis:rare_material"
+    },
+    {
+      "item": "apotheosis:rare_material"
+    },
+    {
+      "item": "apotheosis:rare_material"
+    },
+    {
+      "item": "minecraft:diamond"
+    }
+  ],
+  "result": {
+    "item": "apotheosis:epic_material"
+  }
+}
