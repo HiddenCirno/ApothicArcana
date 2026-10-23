@@ -1,0 +1,57 @@
+美术资产许可 / Art Asset License
+=================================
+
+Copyright (c) 2026 HiddenCirno
+
+本仓库中由本项目创作的视觉资产（包括但不限于
+`src/main/resources/assets/apothinfuser/textures/` 下的贴图、模型与界面素材）
+以 **Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported
+（CC BY-NC-SA 3.0）** 授权。
+
+许可证全文：
+https://creativecommons.org/licenses/by-nc-sa/3.0/legalcode
+
+要点：
+- BY（署名）：再分发时必须注明原作者与来源。
+- NC（非商业性使用，NonCommercial）：不得用于商业目的。
+- SA（相同方式共享）：修改后的作品必须以相同许可证分发。
+
+The original artwork created for this project is licensed under
+Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported.
+
+
+例外 / Exceptions
+-----------------
+
+### 1. 创造模式镶孔符石贴图
+
+`assets/apothinfuser/textures/item/creative_sigil_of_socketing.png`
+由 Apotheosis 的 `items/sigils/socketing.png` 修改而来。
+
+- 原素材：Copyright (c) malcomriley
+- 许可：**CC-BY-4.0**（https://creativecommons.org/licenses/by/4.0/）
+- 修改说明：重新绘制 / 调色为「创造模式镶孔符石」。
+
+该文件**不适用** CC BY-NC-SA 3.0，继续按 CC-BY-4.0 分发。
+
+### 2. 基于 Apotheosis 素材修改的部分
+
+部分贴图与界面素材以 Apotheosis（MIT，Copyright (c) 2023 Brennan Ward）
+的素材为基础修改。对这些部分：
+
+- 原始素材仍受 MIT 许可约束，其版权与许可声明完整保留在
+  `THIRD-PARTY-NOTICES.md`；
+- 本项目自己的修改，在原始许可允许的范围内，也一并按 CC BY-NC-SA 3.0 提供。
+
+### 3. Minecraft 原版素材
+
+本仓库**不包含** Minecraft 原版贴图。模型仅以资源路径引用原版方块/物品；
+原版素材的版权归 Mojang Studios / Microsoft 所有，不在本许可范围内。
+
+
+关于代码
+--------
+
+代码（`src/main/java/`、`build.gradle` 等）使用 **GNU General Public License
+v2.0（GPL-2.0-only）**，全文见 `LICENSE`。代码与美术资产按上述两套许可分别授权；
+它们作为不同类别的作品分发。

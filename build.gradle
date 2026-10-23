@@ -292,6 +292,10 @@ tasks.named('processResources', ProcessResources).configure {
 }
 
 tasks.named('jar', Jar).configure {
+    // GPL 要求随二进制分发附带许可证；美术资产许可与第三方声明同理。
+    from('LICENSE') { into 'META-INF' }
+    from('LICENSE-ASSETS') { into 'META-INF' }
+    from('THIRD-PARTY-NOTICES.md') { into 'META-INF' }
     manifest {
         attributes([
                 'Specification-Title'     : mod_id,
